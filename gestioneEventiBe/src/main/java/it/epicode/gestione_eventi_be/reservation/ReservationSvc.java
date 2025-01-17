@@ -3,12 +3,16 @@ package it.epicode.gestione_eventi_be.reservation;
 import it.epicode.gestione_eventi_be.event.Event;
 import it.epicode.gestione_eventi_be.event.EventSvc;
 import it.epicode.gestione_eventi_be.exception.NoSeatsAvailable;
+import it.epicode.gestione_eventi_be.exception.NotSameOrganizerEvent;
 import it.epicode.gestione_eventi_be.user.normal_user.NormalUser;
 import it.epicode.gestione_eventi_be.user.normal_user.NormalUserSvc;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @Service
@@ -38,5 +42,28 @@ public class ReservationSvc {
         eventSvc.update(e);
         normalUserSvc.update(normalUserser);
         return "Reservation created";
+    }
+
+    public List<Reservation> findByUser(User user){
+        NormalUser normalUserser = normalUserSvc.findByAppUser(user.getUsername());
+        return normalUserser.getReservations();
+    }
+
+    @Transactional
+    public String delete(Long id, User user){
+        NormalUser normalUserser = normalUserSvc.findByAppUser(user.getUsername());
+        Reservation reservation = reservationRepo.findById(id).orElse(null);
+        if (reservation == null){
+            throw new EntityNotFoundException("Reservation not found");
+        }
+        if(reservation.getUserId().equals(normalUserser.getId())) {
+            Event e = eventSvc.findById(reservation.getEventId());
+            e.setAvailableSeats(e.getAvailableSeats() + reservation.getSeatsBooked());
+            eventSvc.update(e);
+            reservationRepo.deleteById(id);
+            return "Reservation deleted";
+        } else {
+            throw new NotSameOrganizerEvent("user not the same");
+        }
     }
 }
