@@ -2,6 +2,7 @@ package it.epicode.gestione_eventi_be.reservation;
 
 import it.epicode.gestione_eventi_be.event.Event;
 import it.epicode.gestione_eventi_be.event.EventSvc;
+import it.epicode.gestione_eventi_be.exception.NoSeatsAvailable;
 import it.epicode.gestione_eventi_be.user.normal_user.NormalUser;
 import it.epicode.gestione_eventi_be.user.normal_user.NormalUserSvc;
 import jakarta.transaction.Transactional;
@@ -29,7 +30,11 @@ public class ReservationSvc {
         normalUserser.getReservations().add(reservation);
         reservation.setSeatsBooked(reservationCreateRequest.getSeatsBooked());
         reservationRepo.save(reservation);
+        if(e.getAvailableSeats()>0 && e.getAvailableSeats() >= reservationCreateRequest.getSeatsBooked()){
         e.setAvailableSeats(e.getAvailableSeats() - reservationCreateRequest.getSeatsBooked());
+        } else {
+            throw new NoSeatsAvailable("Not enough available seats");
+        }
         eventSvc.update(e);
         normalUserSvc.update(normalUserser);
         return "Reservation created";

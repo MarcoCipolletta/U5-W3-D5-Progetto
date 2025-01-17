@@ -49,8 +49,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Error: "+ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler(value = IdException.class)
-    protected ResponseEntity<String> idExceptionHandler(IdException ex) {
+    @ExceptionHandler(value = NoSeatsAvailable.class)
+    protected ResponseEntity<String> noSeatsAvailable(NoSeatsAvailable ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
