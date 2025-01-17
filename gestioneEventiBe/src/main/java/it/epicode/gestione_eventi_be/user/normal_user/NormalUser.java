@@ -5,6 +5,7 @@ import it.epicode.gestione_eventi_be.user.BasicUser;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,5 +15,6 @@ import java.util.List;
 public class NormalUser extends BasicUser {
 
     @OneToMany(mappedBy = "user")
+    @ToString.Exclude
     private List<Reservation> reservations = new ArrayList<>();
 }

@@ -19,7 +19,7 @@ public class AuthRunner implements ApplicationRunner {
     private AppUserService appUserService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private AppUserRepository appUserRepository;
 
 
     @Override
@@ -57,5 +57,8 @@ public class AuthRunner implements ApplicationRunner {
             registerRequest.setRoles(Set.of(Role.ROLE_ORGANIZER));
             appUserService.registerUser(registerRequest);
         }
+
+        System.out.println(appUserRepository.findAll());
+
     }
 }

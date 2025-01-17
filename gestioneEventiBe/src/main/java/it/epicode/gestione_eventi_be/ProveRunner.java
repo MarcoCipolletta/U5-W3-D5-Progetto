@@ -1,7 +1,7 @@
 package it.epicode.gestione_eventi_be;
 
 
-import it.epicode.gestione_eventi_be.user.organizer.OrganizerSvc;
+//import it.epicode.gestione_eventi_be.user.organizer.OrganizerSvc;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Order(10)
 public class ProveRunner implements ApplicationRunner {
-private final OrganizerSvc organizerSvc;
+//private final OrganizerSvc organizerSvc;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
