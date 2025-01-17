@@ -50,7 +50,7 @@ public class AppUserService {
     }
 
     public AppUser findByUsername(String username) {
-        if (appUserRepository.existsByUsername(username)) {
+        if (!appUserRepository.existsByUsername(username)) {
             throw new EntityNotFoundException("User not found");
         }
         return appUserRepository.findByUsername(username).get();
@@ -62,11 +62,13 @@ public class AppUserService {
 
     public String authenticateUser(@Valid LoginRequest loginRequest) {
         try {
+            System.out.println("NEL TRY");
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getIdentifier(), loginRequest.getPassword())
             );
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            System.out.println("UserDetails: " + userDetails);
             return jwtTokenUtil.generateToken(userDetails);
         } catch (AuthenticationException e) {
             throw new SecurityException("Credentials not valid", e);

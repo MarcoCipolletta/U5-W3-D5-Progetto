@@ -28,6 +28,9 @@ public class Event {
     @Column(nullable = false)
     private LocalDateTime date;
 
+    @Column(name= "total_seats")
+    private int totalSeats;
+
     @Column(name= "available_seats")
     private int availableSeats;
 

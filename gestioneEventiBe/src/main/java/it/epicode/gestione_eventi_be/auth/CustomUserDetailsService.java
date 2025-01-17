@@ -17,11 +17,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         AppUser user = appUserRepository.findByUsernameOrEmail(identifier, identifier)
                 .orElseThrow(()-> new UsernameNotFoundException("User not found"));
 
+        System.out.println(user.getPassword());
+        String[] roles = user.getRoles()
+                .stream()
+                .map(Enum::name) // Converte l'enum in una stringa (es: "ROLE_ADMIN")
+                .toArray(String[]::new);
+
         return User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .roles(String.valueOf(user.getRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority(role.name()))))
+                .roles(roles)
                 .build();
     }
 }
