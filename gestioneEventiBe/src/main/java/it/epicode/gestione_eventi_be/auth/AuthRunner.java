@@ -1,18 +1,13 @@
 package it.epicode.gestione_eventi_be.auth;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
-@Order(1)
 public class AuthRunner implements ApplicationRunner {
 
     @Autowired
@@ -21,40 +16,32 @@ public class AuthRunner implements ApplicationRunner {
     @Autowired
     private AppUserRepository appUserRepository;
 
-
     @Override
     public void run(ApplicationArguments args) throws Exception {
         // Creazione dell'utente admin se non esiste
-        Boolean adminUser = appUserService.existsByUsername("admin");
-        if (!adminUser) {
+        if (!appUserRepository.existsByUsername("admin")) {
             RegisterRequest registerRequest = new RegisterRequest();
-            registerRequest.setEmail("admin@admin.it");
             registerRequest.setUsername("admin");
             registerRequest.setPassword("adminpwd");
-            registerRequest.setRoles(Set.of(Role.ROLE_ADMIN));
+            registerRequest.setRole(Role.ROLE_ADMIN);
             appUserService.registerUser(registerRequest);
         }
-
 
         // Creazione dell'utente user se non esiste
-        Boolean normalUser = appUserService.existsByUsername("user");
-        if (!normalUser) {
+        if (!appUserRepository.existsByUsername("user")) {
             RegisterRequest registerRequest = new RegisterRequest();
-            registerRequest.setEmail("user@user.it");
             registerRequest.setUsername("user");
             registerRequest.setPassword("userpwd");
-            registerRequest.setRoles(Set.of(Role.ROLE_USER));
-
+            registerRequest.setRole(Role.ROLE_USER);
             appUserService.registerUser(registerRequest);
         }
 
-        Boolean organizer = appUserService.existsByUsername("organizer");
-        if (!organizer) {
+        // Creazione dell'utente organizer se non esiste
+        if (!appUserRepository.existsByUsername("organizer")) {
             RegisterRequest registerRequest = new RegisterRequest();
-            registerRequest.setEmail("organizer@organizer.it");
             registerRequest.setUsername("organizer");
             registerRequest.setPassword("organizerpwd");
-            registerRequest.setRoles(Set.of(Role.ROLE_ORGANIZER));
+            registerRequest.setRole(Role.ROLE_ORGANIZER);
             appUserService.registerUser(registerRequest);
         }
 

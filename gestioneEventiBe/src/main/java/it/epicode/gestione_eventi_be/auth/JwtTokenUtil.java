@@ -1,11 +1,8 @@
 package it.epicode.gestione_eventi_be.auth;
 
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,14 +11,11 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenUtil {
-    @Autowired
-    private AppUserRepository appUserService;
 
     @Value("${jwt.secret}")
     private String secret;
@@ -61,12 +55,10 @@ public class JwtTokenUtil {
 
     // Genera un token JWT per l'utente, includendo i ruoli
     public String generateToken(UserDetails userDetails) {
-        AppUser appUser = appUserService.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        List<String> roles = appUser.getRoles()
-                .stream()
-                .map(Enum::name) // Converte gli enum in stringhe
-                .collect(Collectors.toList());
+        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        List<String> roles = authorities.stream()
+                                        .map(GrantedAuthority::getAuthority)
+                                        .collect(Collectors.toList());
 
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
@@ -78,25 +70,14 @@ public class JwtTokenUtil {
     }
 
     // Estrae i ruoli dal token JWT
-    public Set<Role> getRolesFromToken(String token) {
+    public List<String> getRolesFromToken(String token) {
         Claims claims = getAllClaimsFromToken(token);
-        List<String> rolesAsString = ((List<?>) claims.get("roles"))
-                .stream()
-                .map(Object::toString)
-                .collect(Collectors.toList());
-
-        return rolesAsString.stream()
-                .map(Role::valueOf) // Converte le stringhe in enum
-                .collect(Collectors.toSet());
+        return claims.get("roles", List.class);
     }
-
 
     // Valida il token JWT
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
-        final Set<Role> roles = getRolesFromToken(token); // Ottieni i ruoli dal token
-
-        // Puoi fare ulteriori validazioni sui ruoli qui, se necessario
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }

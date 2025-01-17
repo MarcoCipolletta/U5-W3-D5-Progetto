@@ -1,13 +1,11 @@
 package it.epicode.gestione_eventi_be.auth;
 
-import it.epicode.gestione_eventi_be.exception.AlreadyExistsException;
-import it.epicode.gestione_eventi_be.exception.EmailAlreadyUsedException;
-import it.epicode.gestione_eventi_be.user.BasicUser;
 import it.epicode.gestione_eventi_be.user.normal_user.NormalUser;
 import it.epicode.gestione_eventi_be.user.organizer.Organizer;
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,61 +15,72 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.Set;
+
 @Service
-@RequiredArgsConstructor
 @Validated
 public class AppUserService {
-    private final AppUserRepository appUserRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenUtil jwtTokenUtil;
 
-    public String registerUser(@Valid RegisterRequest registerRequest) {
-        if (appUserRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new EmailAlreadyUsedException("Email already used");
-        }
+    @Autowired
+    private AppUserRepository appUserRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
+    public AppUser registerUser(@Valid RegisterRequest registerRequest) {
         if (appUserRepository.existsByUsername(registerRequest.getUsername())) {
-            throw new AlreadyExistsException("Username already used");
+            throw new EntityExistsException("Username già in uso");
         }
 
         AppUser appUser = new AppUser();
-        appUser.setEmail(registerRequest.getEmail());
         appUser.setUsername(registerRequest.getUsername());
         appUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        appUser.setRoles(registerRequest.getRoles());
-        if (registerRequest.getRoles().contains(Role.ROLE_USER)) {
+        if (registerRequest.getRole() == Role.ROLE_USER) {
+        appUser.setRoles((Set.of(Role.ROLE_USER)));
         appUser.setProfile(new NormalUser());
-        } else if (registerRequest.getRoles().contains(Role.ROLE_ORGANIZER)) {
+        } else if (registerRequest.getRole() == Role.ROLE_ADMIN) {
+            appUser.setRoles((Set.of(Role.ROLE_ADMIN)));
+
+        } else if (registerRequest.getRole() == Role.ROLE_ORGANIZER) {
+            appUser.setRoles((Set.of(Role.ROLE_ORGANIZER)));
             appUser.setProfile(new Organizer());
         }
 
-        appUserRepository.save(appUser);
-        return "Registration success";
+        return appUserRepository.save(appUser);
     }
 
     public AppUser findByUsername(String username) {
-        if (!appUserRepository.existsByUsername(username)) {
-            throw new EntityNotFoundException("User not found");
+        if(!appUserRepository.existsByUsername(username)) {
+            throw new EntityNotFoundException("Utente non trovato con username: " + username);
         }
         return appUserRepository.findByUsername(username).get();
     }
 
-    public Boolean existsByUsername(String username) {
-        return appUserRepository.existsByUsername(username);
-    }
-
-    public String authenticateUser(@Valid LoginRequest loginRequest) {
+    public String authenticateUser(String username, String password)  {
         try {
-            System.out.println("NEL TRY");
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getIdentifier(), loginRequest.getPassword())
+                    new UsernamePasswordAuthenticationToken(username, password)
             );
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            System.out.println("UserDetails: " + userDetails);
             return jwtTokenUtil.generateToken(userDetails);
         } catch (AuthenticationException e) {
-            throw new SecurityException("Credentials not valid", e);
+            throw new SecurityException("Credenziali non valide", e);
         }
+    }
+
+
+    public AppUser loadUserByUsername(String username)  {
+        AppUser appUser = appUserRepository.findByUsername(username)
+            .orElseThrow(() -> new EntityNotFoundException("Utente non trovato con username: " + username));
+
+
+        return appUser;
     }
 }

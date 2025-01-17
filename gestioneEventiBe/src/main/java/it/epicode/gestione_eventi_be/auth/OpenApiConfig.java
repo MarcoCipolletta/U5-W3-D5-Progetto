@@ -1,6 +1,5 @@
 package it.epicode.gestione_eventi_be.auth;
 
-
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;

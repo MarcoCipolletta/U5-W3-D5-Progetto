@@ -1,6 +1,7 @@
 package it.epicode.gestione_eventi_be.event;
 
 import it.epicode.gestione_eventi_be.exception.AlreadyExistsException;
+import it.epicode.gestione_eventi_be.exception.NotSameOrganizerEvent;
 import it.epicode.gestione_eventi_be.user.organizer.Organizer;
 import it.epicode.gestione_eventi_be.user.organizer.OrganizerSvc;
 import jakarta.persistence.EntityNotFoundException;
@@ -12,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class EventSvc {
             throw new AlreadyExistsException("Event with title " + eventCreateRequest.getTitle() + " already exists");
         }
         Organizer organizer = organizerSvc.findByAppUser(user.getUsername());
+
 
         Event event = new Event();
         event.setTitle(eventCreateRequest.getTitle());
@@ -49,15 +53,29 @@ public class EventSvc {
         return eventRepo.findById(id).get();
     }
 
-    public Event update(Long id, EventCreateRequest request) {
+    public Event update(Long id, EventCreateRequest request,User user) {
         Event e = findById(id);
 
+        Organizer organizer = organizerSvc.findByAppUser(user.getUsername());
+
+        if(!Objects.equals(e.getOrganizerId(), organizer.getId())) {
+            throw new NotSameOrganizerEvent("Organizer not the same");
+        }
         BeanUtils.copyProperties(request, e);
         return eventRepo.save(e);
     }
 
-    public String delete(Long id) {
+    public Event update (Event event) {
+        return eventRepo.save(event);
+    }
+
+    public String delete(Long id,User user) {
         Event e = findById(id);
+        Organizer organizer = organizerSvc.findByAppUser(user.getUsername());
+
+        if(!Objects.equals(e.getOrganizerId(), organizer.getId())) {
+            throw new NotSameOrganizerEvent("Organizer not the same");
+        }
         eventRepo.deleteById(e.getId());
         return "Event deleted";
     }

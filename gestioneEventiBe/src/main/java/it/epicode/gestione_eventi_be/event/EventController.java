@@ -23,9 +23,21 @@ public class EventController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ORGANIZER')")
     public ResponseEntity<String> createEvent(@RequestBody EventCreateRequest eventCreateRequest, @AuthenticationPrincipal User user) {
 
         return new ResponseEntity<>(eventSvc.createEvent(eventCreateRequest, user), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ORGANIZER')")
+    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody EventCreateRequest eventCreateRequest, @AuthenticationPrincipal User user) {
+        return new ResponseEntity<>(eventSvc.update(id, eventCreateRequest,user), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ORGANIZER')")
+    public ResponseEntity<String> deleteEvent(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        return new ResponseEntity<>(eventSvc.delete(id,user), HttpStatus.OK);
     }
 }

@@ -1,5 +1,7 @@
 package it.epicode.gestione_eventi_be.event;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import it.epicode.gestione_eventi_be.reservation.Reservation;
 import it.epicode.gestione_eventi_be.user.organizer.Organizer;
 import jakarta.persistence.*;
@@ -35,10 +37,17 @@ public class Event {
     private int availableSeats;
 
     @OneToMany(mappedBy = "event")
+    @JsonManagedReference
     private List<Reservation> reservations;
 
     @ManyToOne
+    @JsonBackReference
     private Organizer organizer;
+
+    public Long getOrganizerId() {
+        return organizer != null ? organizer.getId() : null;
+    }
+
 
 
 }

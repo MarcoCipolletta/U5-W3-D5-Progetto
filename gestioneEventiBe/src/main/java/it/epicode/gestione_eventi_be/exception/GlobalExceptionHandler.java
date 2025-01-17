@@ -1,5 +1,6 @@
 package it.epicode.gestione_eventi_be.exception;
 
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -18,6 +19,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = EntityNotFoundException.class)
     protected ResponseEntity<Object> entityNotFound(EntityNotFoundException ex) {
+        return new ResponseEntity<>("Error: "+ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler(value = EntityExistsException.class)
+    protected ResponseEntity<Object> entityExists(EntityExistsException ex) {
         return new ResponseEntity<>("Error: "+ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
@@ -39,9 +44,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Error: "+ex.getMessage(), HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(value = MaxUploadSizeExceededException.class)
-    protected ResponseEntity<Object> maxUploadSize(MaxUploadSizeExceededException ex) {
-        return new ResponseEntity<>("Error: "+ex.getMessage(), HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(value = NotSameOrganizerEvent.class)
+    protected ResponseEntity<Object> notSameOrganizer(NotSameOrganizerEvent ex) {
+        return new ResponseEntity<>("Error: "+ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(value = IdException.class)
